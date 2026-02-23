@@ -12,6 +12,4 @@ kyoto01012015 <- read_delim(
 
 sum(kyoto01012015)
 
-kyoto01012015 <- kyoto01012015 %>% rename(
-  
-)
+rename(kyoto01012015, )

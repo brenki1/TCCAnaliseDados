@@ -74,7 +74,7 @@ kyoto01012015 |>
 kyoto01012015|>
   count(Servico, Flag) |>
   ggplot(aes(x = Servico, y = Flag, fill = n))+
-  geom_tile(color = "black")+
+  geom_tile(color = "#ffffff")+
   scale_fill_viridis_c(trans = "log2")+ 
   theme_minimal()+
   labs(

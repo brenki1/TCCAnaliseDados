@@ -7,7 +7,7 @@ library(rpart.plot)
 library(randomForest)
 library(tidyverse)
 
-dados <- "20150101.txt"
+dados <- "20150102.txt"
 
 kyoto01012015 <- read_delim(
   dados,
@@ -41,13 +41,16 @@ kyoto01012015 <- kyoto01012015 |> rename(
   Porta_Destino = X22,
   T_Comeco = X23,
   Protocolo = X24)
-
+kyoto01012015 <- kyoto01012015|>
+  filter(Rotulo != -2)
 kyoto01012015$Rotulo <- as.factor(kyoto01012015$Rotulo)
 kyoto01012015$Servico <- as.factor(kyoto01012015$Servico)
 kyoto01012015$Protocolo <- as.factor(kyoto01012015$Protocolo)
 kyoto01012015$Flag <- as.factor(kyoto01012015$Flag)
 
 filtro <- c("Rotulo", "Duracao", "Servico", "Bytes_origem", "Bytes_destino","Qtd", "Tx_msm_servico", "Tx_Serro", "Tx_Serro_servico", "Destino_qtd_host", "Destino_host_qtd_servico", "Destino_host_msm_tx_porta_origem", "Destino_host_tx_serro", "Destino_host_tx_serro_servico", "Flag", "Protocolo")
+
+
 
 kyotoFiltrada <- kyoto01012015[,filtro]
 kyotoFiltrada <- na.omit(kyotoFiltrada)
@@ -71,7 +74,7 @@ teste$Flag <- as.factor(teste$Flag)
 
 # --- FLORESTA ALEATÓRIA ---
 
-floresta <- randomForest(formula = Rotulo ~ ., data = treino, ntree=200)
+floresta <- randomForest(formula = Rotulo ~ .-Destino_host_msm_tx_porta_origem, data = treino, ntree=200)
 
 floresta
 
@@ -79,7 +82,7 @@ previsao.floresta <- predict(floresta, newdata = teste)
 
 previsao.floresta
 mean(previsao.floresta == teste$Rotulo)
-
+table(previsao.floresta,teste$Rotulo)
 importancia <- as.data.frame(importance(floresta))
 importancia$Variavel <- rownames(importancia)
 
@@ -93,7 +96,6 @@ ggplot(importancia, aes(x = reorder(Variavel, MeanDecreaseGini), y = MeanDecreas
     y = "importância (mean decrease gini)"
   )
 
-rpart.plot(floresta)
 
 # --- ÁRVORE DE DECISÃO ---
 

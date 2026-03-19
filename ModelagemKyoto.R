@@ -7,7 +7,7 @@ library(rpart.plot)
 library(randomForest)
 library(tidyverse)
 
-dados <- "20150102.txt"
+dados <- "20150101.txt"
 
 kyoto01012015 <- read_delim(
   dados,
@@ -101,7 +101,7 @@ ggplot(importancia, aes(x = reorder(Variavel, MeanDecreaseGini), y = MeanDecreas
 
 arvore <- rpart(formula = Rotulo ~., data= treino)
 previsao.arvore <- predict(arvore, newdata=teste, type="class")
-
+table(previsao.arvore,teste$Rotulo)
 mean(previsao.arvore == teste$Rotulo)
 rpart.plot(arvore, type=3, extra=101, fallen.leaves=TRUE)
 

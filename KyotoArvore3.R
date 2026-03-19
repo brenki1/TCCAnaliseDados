@@ -1,4 +1,4 @@
-# Modelagem de um Sistema de Detecção de Intrusão (IDS) usando randomForest e árvores de decisão do R
+# Modelo sem Tx_serro e Tx_msm_servico e Tx_serro_servico
 
 library(ggplot2)
 library(class)
@@ -48,9 +48,7 @@ kyoto01012015$Servico <- as.factor(kyoto01012015$Servico)
 kyoto01012015$Protocolo <- as.factor(kyoto01012015$Protocolo)
 kyoto01012015$Flag <- as.factor(kyoto01012015$Flag)
 
-filtro <- c("Rotulo", "Duracao", "Servico", "Bytes_origem", "Bytes_destino","Qtd", "Tx_msm_servico", "Tx_Serro", "Tx_Serro_servico", "Destino_qtd_host", "Destino_host_qtd_servico", "Destino_host_msm_tx_porta_origem", "Destino_host_tx_serro", "Destino_host_tx_serro_servico", "Flag", "Protocolo")
-
-
+filtro <- c("Rotulo", "Duracao", "Servico", "Bytes_origem", "Bytes_destino","Qtd", "Destino_qtd_host", "Destino_host_qtd_servico", "Destino_host_msm_tx_porta_origem", "Destino_host_tx_serro", "Destino_host_tx_serro_servico", "Flag", "Protocolo")
 
 kyotoFiltrada <- kyoto01012015[,filtro]
 kyotoFiltrada <- na.omit(kyotoFiltrada)
@@ -62,37 +60,12 @@ indices_treino <- sample(1:nrow(kyotoFiltrada), size = n, replace = FALSE)
 treino <- kyotoFiltrada[indices_treino,]
 teste <- kyotoFiltrada[-indices_treino,]
 
-# --- FLORESTA ALEATÓRIA ---
-
-floresta <- randomForest(formula = Rotulo ~ .-Destino_host_msm_tx_porta_origem, data = treino, ntree=200)
-
-floresta
-
-previsao.floresta <- predict(floresta, newdata = teste)
-
-previsao.floresta
-mean(previsao.floresta == teste$Rotulo)
-table(previsao.floresta,teste$Rotulo)
-importancia <- as.data.frame(importance(floresta))
-importancia$Variavel <- rownames(importancia)
-
-ggplot(importancia, aes(x = reorder(Variavel, MeanDecreaseGini), y = MeanDecreaseGini)) +
-  geom_col(fill = "#4b059c") +
-  coord_flip() +
-  theme_minimal() +
-  labs(
-    title = "Importância das variáveis na Floresta Aleatória",
-    x = "variável",
-    y = "importância (mean decrease gini)"
-  )
-
-
-# --- ÁRVORE DE DECISÃO ---
-
 arvore <- rpart(formula = Rotulo ~., data= treino)
 previsao.arvore <- predict(arvore, newdata=teste, type="class")
 table(previsao.arvore,teste$Rotulo)
 mean(previsao.arvore == teste$Rotulo)
+
+rpart.plot(arvore, type=3, extra=101, fallen.leaves=TRUE)
 
 importancia_valores <- arvore$variable.importance
 importancia <- data.frame(
@@ -110,10 +83,3 @@ ggplot(importancia, aes(x = reorder(Variavel, Importancia), y = Importancia)) +
     y = "Importância Geral"
   )
 
-rpart.plot(arvore, type=3, extra=101, fallen.leaves=TRUE)
-
-# neste caso, 1 = normal, -1 = ataque!
-
-# --- CONCLUSÃO --- 
-
-print("Nessas condições, a floresta teve uma acurácia de 99,69956%. Enquanto a árvore 98,56076%")

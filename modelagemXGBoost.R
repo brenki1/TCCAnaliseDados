@@ -2,7 +2,7 @@ library(xgboost)
 library(class)
 library(tidyverse)
 
-dados <- "20150101.txt"
+dados <- "20150102.txt"
 
 kyoto01012015 <- read_delim(
   dados,
@@ -45,7 +45,7 @@ kyoto01012015$Servico <- as.factor(kyoto01012015$Servico)
 kyoto01012015$Protocolo <- as.factor(kyoto01012015$Protocolo)
 kyoto01012015$Flag <- as.factor(kyoto01012015$Flag)
 
-filtro <- c("Rotulo", "Duracao", "Servico", "Bytes_origem", "Bytes_destino","Qtd", "Tx_msm_servico", "Tx_Serro", "Tx_Serro_servico", "Destino_qtd_host", "Destino_host_qtd_servico", "Destino_host_msm_tx_porta_origem", "Destino_host_tx_serro", "Destino_host_tx_serro_servico", "Flag", "Protocolo")
+filtro <- c("Rotulo", "Duracao", "Servico", "Bytes_origem", "Bytes_destino", "Destino_qtd_host", "Destino_host_qtd_servico", "Destino_host_tx_serro", "Destino_host_tx_serro_servico", "Flag", "Protocolo")
 
 kyotoFiltrada <- kyoto01012015[,filtro]
 kyotoFiltrada <- na.omit(kyotoFiltrada)
@@ -67,9 +67,9 @@ modeloXG <- xgboost(
   x = X_treino,
   y = y_treino,
   max_depth = 5,
-  learning_rate = 0.5,
-  nrounds = 2000,
-  nthreads = 11,
+  learning_rate = 0.3,
+  nrounds = 1000,
+  nthreads = 16,
   objective = "binary:logistic"
 )
 
@@ -78,4 +78,4 @@ previsoes <- as.factor(ifelse(probabilidades > 0.5, 1, 0))
 table(previsoes,teste$Rotulo)
 acuracia <- mean(previsoes == y_teste)
 print(paste("Acurácia final:", acuracia))
-
+help(xgboost)

@@ -7,7 +7,7 @@ library(rpart.plot)
 library(randomForest)
 library(tidyverse)
 
-dados <- "20150102.txt"
+dados <- "20150101.txt"
 
 kyoto01012015 <- read_delim(
   dados,

@@ -1,5 +1,3 @@
-# Modelo sem Tx_serro
-
 library(ggplot2)
 library(class)
 library(rpart)
@@ -7,7 +5,7 @@ library(rpart.plot)
 library(randomForest)
 library(tidyverse)
 
-dados <- "20150102.txt"
+dados <- "20150101.txt"
 
 kyoto01012015 <- read_delim(
   dados,
@@ -48,7 +46,7 @@ kyoto01012015$Servico <- as.factor(kyoto01012015$Servico)
 kyoto01012015$Protocolo <- as.factor(kyoto01012015$Protocolo)
 kyoto01012015$Flag <- as.factor(kyoto01012015$Flag)
 
-filtro <- c("Rotulo", "Duracao", "Servico", "Bytes_origem", "Bytes_destino","Qtd", "Tx_msm_servico", "Tx_Serro_servico", "Destino_qtd_host", "Destino_host_qtd_servico", "Destino_host_msm_tx_porta_origem", "Destino_host_tx_serro", "Destino_host_tx_serro_servico", "Flag", "Protocolo")
+filtro <- c("Rotulo", "Duracao", "Servico", "Bytes_origem", "Bytes_destino","Qtd","Destino_qtd_host", "Destino_host_qtd_servico", "Destino_host_tx_serro", "Flag", "Protocolo")
 
 kyotoFiltrada <- kyoto01012015[,filtro]
 kyotoFiltrada <- na.omit(kyotoFiltrada)
@@ -60,9 +58,12 @@ indices_treino <- sample(1:nrow(kyotoFiltrada), size = n, replace = FALSE)
 treino <- kyotoFiltrada[indices_treino,]
 teste <- kyotoFiltrada[-indices_treino,]
 
-arvore <- rpart(formula = Rotulo ~., data= treino)
-previsao.arvore <- predict(arvore, newdata=teste, type="class")
-table(previsao.arvore,teste$Rotulo)
-mean(previsao.arvore == teste$Rotulo)
+floresta <- randomForest(formula = Rotulo ~ ., data = treino, ntree=200)
 
-rpart.plot(arvore, type=3, extra=101, fallen.leaves=TRUE)
+floresta
+
+previsao.floresta <- predict(floresta, newdata = teste)
+
+previsao.floresta
+mean(previsao.floresta == teste$Rotulo)
+table(previsao.floresta,teste$Rotulo)

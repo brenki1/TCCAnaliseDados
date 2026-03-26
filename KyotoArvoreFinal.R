@@ -1,5 +1,3 @@
-# Modelo sem Tx_serro e Tx_msm_servico e Tx_serro_servico
-
 library(ggplot2)
 library(class)
 library(rpart)
@@ -48,7 +46,7 @@ kyoto01012015$Servico <- as.factor(kyoto01012015$Servico)
 kyoto01012015$Protocolo <- as.factor(kyoto01012015$Protocolo)
 kyoto01012015$Flag <- as.factor(kyoto01012015$Flag)
 
-filtro <- c("Rotulo", "Duracao", "Servico", "Bytes_origem", "Bytes_destino", "Destino_qtd_host", "Destino_host_qtd_servico", "Destino_host_tx_serro", "Destino_host_tx_serro_servico", "Flag", "Protocolo")
+filtro <- c("Rotulo", "Duracao", "Servico", "Bytes_origem", "Bytes_destino","Qtd","Destino_qtd_host", "Destino_host_qtd_servico", "Destino_host_tx_serro", "Flag", "Protocolo")
 
 kyotoFiltrada <- kyoto01012015[,filtro]
 kyotoFiltrada <- na.omit(kyotoFiltrada)
@@ -64,8 +62,6 @@ arvore <- rpart(formula = Rotulo ~., data= treino)
 previsao.arvore <- predict(arvore, newdata=teste, type="class")
 table(previsao.arvore,teste$Rotulo)
 mean(previsao.arvore == teste$Rotulo)
-
-rpart.plot(arvore, type=3, extra=101, fallen.leaves=TRUE)
 
 importancia_valores <- arvore$variable.importance
 importancia <- data.frame(

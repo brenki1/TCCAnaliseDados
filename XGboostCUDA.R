@@ -1,10 +1,5 @@
-# Modelo sem Tx_serro e Tx_msm_servico e Tx_serro_servico
-
-library(ggplot2)
+library(xgboost)
 library(class)
-library(rpart)
-library(rpart.plot)
-library(randomForest)
 library(tidyverse)
 
 dados <- "20150101.txt"
@@ -41,45 +36,53 @@ kyoto01012015 <- kyoto01012015 |> rename(
   Porta_Destino = X22,
   T_Comeco = X23,
   Protocolo = X24)
+
 kyoto01012015 <- kyoto01012015|>
   filter(Rotulo != -2)
+
 kyoto01012015$Rotulo <- as.factor(kyoto01012015$Rotulo)
 kyoto01012015$Servico <- as.factor(kyoto01012015$Servico)
 kyoto01012015$Protocolo <- as.factor(kyoto01012015$Protocolo)
 kyoto01012015$Flag <- as.factor(kyoto01012015$Flag)
 
-filtro <- c("Rotulo", "Duracao", "Servico", "Bytes_origem", "Bytes_destino", "Destino_qtd_host", "Destino_host_qtd_servico", "Destino_host_tx_serro", "Destino_host_tx_serro_servico", "Flag", "Protocolo")
+filtro <- c("Rotulo", "Duracao", "Servico", "Bytes_origem", "Bytes_destino","Qtd","Destino_qtd_host", "Destino_host_qtd_servico", "Destino_host_tx_serro", "Flag", "Protocolo")
 
 kyotoFiltrada <- kyoto01012015[,filtro]
 kyotoFiltrada <- na.omit(kyotoFiltrada)
 
 n <- round(0.8*nrow(kyotoFiltrada))
-set.seed(06112022)
+set.seed(895769)
 indices_treino <- sample(1:nrow(kyotoFiltrada), size = n, replace = FALSE)
 
 treino <- kyotoFiltrada[indices_treino,]
 teste <- kyotoFiltrada[-indices_treino,]
 
-arvore <- rpart(formula = Rotulo ~., data= treino)
-previsao.arvore <- predict(arvore, newdata=teste, type="class")
-table(previsao.arvore,teste$Rotulo)
-mean(previsao.arvore == teste$Rotulo)
+X_treino <- model.matrix(Rotulo ~ . -1, data = treino)
+X_teste  <- model.matrix(Rotulo ~ . -1, data = teste)
 
-rpart.plot(arvore, type=3, extra=101, fallen.leaves=TRUE)
+y_treino <- as.factor(ifelse(treino$Rotulo == -1, 1, 0))
+y_teste  <- as.factor(ifelse(teste$Rotulo == -1, 1, 0))
 
-importancia_valores <- arvore$variable.importance
-importancia <- data.frame(
-  Variavel = names(importancia_valores),
-  Importancia = as.numeric(importancia_valores)
+
+inicio <- Sys.time()
+modeloXG <- xgboost(
+  x = X_treino,
+  y = y_treino,
+  max_depth = 5,
+  learning_rate = 0.6,
+  nrounds = 2000,
+  tree_method = "hist",
+  device = "cuda",
+  nthreads = 12,
+  objective = "binary:logistic"
 )
+fim <- Sys.time()
+tempoExec <- fim - inicio
 
-ggplot(importancia, aes(x = reorder(Variavel, Importancia), y = Importancia)) +
-  geom_col(fill = "#4b059c") +
-  coord_flip() +
-  theme_minimal() +
-  labs(
-    title = "Importância das Variáveis na Árvore de Decisão",
-    x = "Variável",
-    y = "Importância Geral"
-  )
+tempoExec
 
+probabilidades <- predict(modeloXG, newdata = X_teste)
+previsoes <- as.factor(ifelse(probabilidades > 0.5, 1, 0))
+table(previsoes,teste$Rotulo)
+acuracia <- mean(previsoes == y_teste)
+print(paste("Acurácia final:", acuracia))

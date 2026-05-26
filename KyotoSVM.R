@@ -1,4 +1,4 @@
-library(xgboost)
+library(e1071)
 library(class)
 library(tidyverse)
 
@@ -37,7 +37,7 @@ kyoto <- kyoto |> rename(
   T_Comeco = X23,
   Protocolo = X24)
 
-kyoto <- kyoto|>
+kyoto <- kyoto |>
   filter(Rotulo != -2)
 
 kyoto$Rotulo <- as.factor(kyoto$Rotulo)
@@ -45,7 +45,7 @@ kyoto$Servico <- as.factor(kyoto$Servico)
 kyoto$Protocolo <- as.factor(kyoto$Protocolo)
 kyoto$Flag <- as.factor(kyoto$Flag)
 
-filtro <- c("Rotulo", "Duracao", "Servico", "Bytes_origem", "Bytes_destino","Qtd","Destino_qtd_host", "Destino_host_qtd_servico", "Destino_host_tx_serro", "Flag", "Protocolo")
+filtro <- c("Rotulo","Duracao","Servico","Bytes_origem","Bytes_destino","Qtd","Destino_qtd_host","Destino_host_qtd_servico","Destino_host_tx_serro","Flag","Protocolo")
 
 kyotoFiltrada <- kyoto[,filtro]
 kyotoFiltrada <- na.omit(kyotoFiltrada)
@@ -57,25 +57,30 @@ indices_treino <- sample(1:nrow(kyotoFiltrada), size = n, replace = FALSE)
 treino <- kyotoFiltrada[indices_treino,]
 teste <- kyotoFiltrada[-indices_treino,]
 
-X_treino <- model.matrix(Rotulo ~ . -1, data = treino)
-X_teste  <- model.matrix(Rotulo ~ . -1, data = teste)
+treino$Rotulo <- as.factor(ifelse(treino$Rotulo == -1, "Ataque", "Normal"))
+teste$Rotulo  <- as.factor(ifelse(teste$Rotulo == -1, "Ataque", "Normal"))
 
-y_treino <- as.factor(ifelse(treino$Rotulo == -1, 1, 0))
-y_teste  <- as.factor(ifelse(teste$Rotulo == -1, 1, 0))
+indices_reduzido <- sample(1:nrow(treino), size = 100000, replace = FALSE)
+treino_reduzido <- treino[indices_reduzido, ]
 
-modeloXG <- xgboost(
-  x = X_treino,
-  y = y_treino,
-  max_depth = 5,
-  learning_rate = 0.6,
-  nrounds = 2000,
-  nthreads = 16,
-  objective = "binary:logistic"
+inicio <- Sys.time()
+
+modeloSVM <- svm(
+  formula = Rotulo ~ .,
+  data = treino_reduzido,
+  type = "C-classification",
+  kernel = "radial",
+  scale = TRUE
 )
+fim <- Sys.time()
 
-probabilidades <- predict(modeloXG, newdata = X_teste)
-previsoes <- as.factor(ifelse(probabilidades > 0.5, 1, 0))
-table(previsoes,teste$Rotulo)
-acuracia <- mean(previsoes == y_teste)
-print(paste("Acurácia final:", acuracia))
+print(format(fim - inicio))
 
+previsao <- predict(modeloSVM, teste)
+
+res <- table(Previsao = previsao, Real = teste$Rotulo)
+
+print(res)
+
+acuracia <- mean(previsao == teste$Rotulo)
+print(paste("Acurácia: ", acuracia))

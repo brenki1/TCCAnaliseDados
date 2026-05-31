@@ -2,7 +2,7 @@ library(e1071)
 library(class)
 library(tidyverse)
 
-dados <- c("20150101.txt", "20150102.txt")
+dados <- c("20150101.txt")
 
 kyoto <- read_delim(
   dados,
@@ -84,3 +84,4 @@ print(res)
 
 acuracia <- mean(previsao == teste$Rotulo)
 print(paste("Acurácia: ", acuracia))
+ 

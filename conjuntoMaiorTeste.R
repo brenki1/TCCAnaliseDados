@@ -50,32 +50,59 @@ filtro <- c("Rotulo", "Duracao", "Servico", "Bytes_origem", "Bytes_destino","Qtd
 kyotoFiltrada <- kyoto[,filtro]
 kyotoFiltrada <- na.omit(kyotoFiltrada)
 
-n <- round(0.8*nrow(kyotoFiltrada))
-set.seed(895769)
-indices_treino <- sample(1:nrow(kyotoFiltrada), size = n, replace = FALSE)
+n_simulacoes <- 1000
+tempos_execucao <- numeric(n_simulacoes)
+acuracias <- numeric(n_simulacoes)
+vetor_medias_tempo <- numeric(n_simulacoes)
+vetor_medias_acuracia <- numeric(n_simulacoes)
 
-treino <- kyotoFiltrada[indices_treino,]
-teste <- kyotoFiltrada[-indices_treino,]
+n <- round(0.8 * nrow(kyotoFiltrada))
 
-X_treino <- model.matrix(Rotulo ~ . -1, data = treino)
-X_teste  <- model.matrix(Rotulo ~ . -1, data = teste)
+for (i in 1:n_simulacoes) {
+  set.seed(895769 + i)
+  
+  indices_treino <- sample(1:nrow(kyotoFiltrada), size = n, replace = FALSE)
+  
+  treino <- kyotoFiltrada[indices_treino,]
+  teste <- kyotoFiltrada[-indices_treino,]
+  
+  X_treino <- model.matrix(Rotulo ~ . -1, data = treino)
+  X_teste  <- model.matrix(Rotulo ~ . -1, data = teste)
+  
+  y_treino <- as.factor(ifelse(treino$Rotulo == -1, 1, 0))
+  y_teste  <- as.factor(ifelse(teste$Rotulo == -1, 1, 0))
+  
+  inicio <- Sys.time()
+  modeloXG <- xgboost(
+    x = X_treino,
+    y = y_treino,
+    max_depth = 5,
+    learning_rate = 0.6,
+    nrounds = 2000,
+    device = "cuda",
+    tree_method = "hist",
+    nthreads = 16,
+    objective = "binary:logistic",
+  )
+  fim <- Sys.time()
+  
+  tempos_execucao[i] <- as.numeric(difftime(fim, inicio, units = "secs"))
+  
+  probabilidades <- predict(modeloXG, newdata = X_teste)
+  previsoes <- as.factor(ifelse(probabilidades > 0.5, 1, 0))
+  
+  acuracias[i] <- mean(previsoes == y_teste)
+  
+  vetor_medias_tempo[i] <- mean(tempos_execucao[1:i])
+  vetor_medias_acuracia[i] <- mean(acuracias[1:i])
+}
 
-y_treino <- as.factor(ifelse(treino$Rotulo == -1, 1, 0))
-y_teste  <- as.factor(ifelse(teste$Rotulo == -1, 1, 0))
-
-modeloXG <- xgboost(
-  x = X_treino,
-  y = y_treino,
-  max_depth = 5,
-  learning_rate = 0.6,
-  nrounds = 2000,
-  nthreads = 16,
-  objective = "binary:logistic"
+resultados <- data.frame(
+  Simulacao = 1:n_simulacoes,
+  Tempo_Execucao_Segundos = tempos_execucao,
+  Media_Tempo_Cumulativa = vetor_medias_tempo,
+  Acuracia = acuracias,
+  Media_Acuracia_Cumulativa = vetor_medias_acuracia
 )
 
-probabilidades <- predict(modeloXG, newdata = X_teste)
-previsoes <- as.factor(ifelse(probabilidades > 0.5, 1, 0))
-table(previsoes,teste$Rotulo)
-acuracia <- mean(previsoes == y_teste)
-print(paste("Acurácia final:", acuracia))
-
+write.csv(resultados, "resultados_monte_carlo.csv", row.names = FALSE)

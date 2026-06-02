@@ -50,15 +50,15 @@ filtro <- c("Rotulo", "Duracao", "Servico", "Bytes_origem", "Bytes_destino","Qtd
 kyotoFiltrada <- kyoto[,filtro]
 kyotoFiltrada <- na.omit(kyotoFiltrada)
 
-n_simulacoes <- 1000
-tempos_execucao <- numeric(n_simulacoes)
-acuracias <- numeric(n_simulacoes)
-vetor_medias_tempo <- numeric(n_simulacoes)
-vetor_medias_acuracia <- numeric(n_simulacoes)
+n <- 1000
+TExec <- numeric(n)
+acuracias <- numeric(n)
+vetorMediaT <- numeric(n)
+vetorMediaAc <- numeric(n)
 
 n <- round(0.8 * nrow(kyotoFiltrada))
 
-for (i in 1:n_simulacoes) {
+for (i in 1:n) {
   set.seed(895769 + i)
   
   indices_treino <- sample(1:nrow(kyotoFiltrada), size = n, replace = FALSE)
@@ -86,23 +86,23 @@ for (i in 1:n_simulacoes) {
   )
   fim <- Sys.time()
   
-  tempos_execucao[i] <- as.numeric(difftime(fim, inicio, units = "secs"))
+  TExec[i] <- as.numeric(difftime(fim, inicio, units = "secs"))
   
   probabilidades <- predict(modeloXG, newdata = X_teste)
   previsoes <- as.factor(ifelse(probabilidades > 0.5, 1, 0))
   
   acuracias[i] <- mean(previsoes == y_teste)
   
-  vetor_medias_tempo[i] <- mean(tempos_execucao[1:i])
-  vetor_medias_acuracia[i] <- mean(acuracias[1:i])
+  vetorMediaT[i] <- mean(TExec[1:i])
+  vetorMediaAc[i] <- mean(acuracias[1:i])
 }
 
 resultados <- data.frame(
-  Simulacao = 1:n_simulacoes,
-  Tempo_Execucao_Segundos = tempos_execucao,
-  Media_Tempo_Cumulativa = vetor_medias_tempo,
+  ite = 1:n,
+  tExecS = TExec,
+  MediaTCumulativa = vetorMediaT,
   Acuracia = acuracias,
-  Media_Acuracia_Cumulativa = vetor_medias_acuracia
+  MediaAcCumulativa = vetorMediaAc
 )
 
 write.csv(resultados, "resultados_monte_carlo.csv", row.names = FALSE)

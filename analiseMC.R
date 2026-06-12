@@ -25,7 +25,7 @@ TempoXG <- ggplot(dadosXG,aes(x= ite)) +
   theme_classic()
 
 histogramaTempoXG <- ggplot(dadosXG, aes(x = tExecS)) +
-  geom_histogram(fill = "purple", color = "white", bins = 10, alpha = 0.8) +
+  geom_histogram(fill = "purple", color = "white", bins = 20, alpha = 0.8) +
   labs(title = "Histograma tempo de execução",
        x = "Tempo de execução (s)",
        y = "Frequência") +
@@ -52,7 +52,7 @@ TempoPR <- ggplot(dadosPR,aes(x= ite)) +
   theme_classic()
 
 histogramaTempoPR <- ggplot(dadosPR, aes(x = tExecS)) +
-  geom_histogram(fill = "purple", color = "white", bins = 10, alpha = 0.8) +
+  geom_histogram(fill = "purple", color = "white", bins = 20, alpha = 0.8) +
   labs(title = "Histograma tempo de execução",
        x = "Tempo de execução (s)",
        y = "Frequência") +
@@ -79,7 +79,7 @@ TempoPP <- ggplot(dadosPP,aes(x= ite)) +
   theme_classic()
 
 histogramaTempoPP <- ggplot(dadosPP, aes(x = tExecS)) +
-  geom_histogram(fill = "purple", color = "white", bins = 10, alpha = 0.8) +
+  geom_histogram(fill = "purple", color = "white", bins = 20, alpha = 0.8) +
   labs(title = "Histograma tempo de execução",
        x = "Tempo de execução (s)",
        y = "Frequência") +

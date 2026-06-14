@@ -90,7 +90,6 @@ X_teste  <- model.matrix(Rotulo ~ . -1, data = teste)
 y_treino <- as.factor(ifelse(treino$Rotulo == -1, 1, 0))
 y_teste  <- as.factor(ifelse(teste$Rotulo == -1, 1, 0))
 
-
 inicio <- Sys.time()
 modeloXG <- xgboost(
   x = X_treino,

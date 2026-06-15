@@ -48,16 +48,16 @@ for(arq in arquivos) {
     T_Comeco = X23,
     Protocolo = X24)
   
-dia <- dia |> filter(Rotulo != -2)
-
-qtdAmostras <- sample(10000:15000, size = 1)
-qtdAmostras <- min(qtdAmostras, nrow(dia))
-
-indicesDia <- sample(1:nrow(dia), size = qtdAmostras, replace = FALSE)
-amostra <- dia[indicesDia,]
-
-leitura[[length(leitura)+1]] <- amostra
-
+  dia <- dia |> filter(Rotulo != -2)
+  
+  qtdAmostras <- sample(10000:15000, size = 1)
+  qtdAmostras <- min(qtdAmostras, nrow(dia))
+  
+  indicesDia <- sample(1:nrow(dia), size = qtdAmostras, replace = FALSE)
+  amostra <- dia[indicesDia,]
+  
+  leitura[[length(leitura)+1]] <- amostra
+  
 }
 
 kyoto <- bind_rows(leitura)

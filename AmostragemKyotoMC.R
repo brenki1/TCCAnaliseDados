@@ -81,23 +81,22 @@ for(i in 1:iteracoes) {
   X_treino <- model.matrix(Rotulo ~ . -1, data = treino)
   X_teste  <- model.matrix(Rotulo ~ . -1, data = teste)
   
+ 
   y_treino <- as.factor(ifelse(treino$Rotulo == -1, 1, 0))
   y_teste  <- as.factor(ifelse(teste$Rotulo == -1, 1, 0))
   
-
-  y_teste  <- as.factor(teste$Rotulo == "-1")
-  
   inicio <- Sys.time()
+  
   modeloXG <- xgboost(
-    x = X_treino,
-    y = y_treino,
+    data = X_treino,
+    label = y_treino,
     max_depth = 5,
     learning_rate = 0.6,
     nrounds = 2000,
-    nthreads = 16,
-    objective = "binary:logistic"
+    nthread = 16,
+    objective = "binary:logistic",
   )
-
+  
   fim <- Sys.time()
   
   tempoExec <- as.numeric(difftime(fim, inicio, units = "secs"))
@@ -120,4 +119,4 @@ resultados_finais <- data.frame(
   MediaTCumulativa = vetor_tempo_cumulativo
 )
 
-write.csv(resultados_finais, "resultados_monteCarlo_amostragem.csv", row.names = FALSE)
+write.csv(resultados_finais, "monteCarloA.csv", row.names = FALSE)

@@ -1,12 +1,12 @@
 library(ggplot2)
 library(tidyverse)
 
-dados <-read_csv("monteCarloADFAsvm.csv", show_col_types = FALSE)
+dados <-read_csv("monteCarloUNSWgbm.csv", show_col_types = FALSE)
 
 Acuracia <- ggplot(dados, aes(x = ite)) +
   geom_point(aes(y = Acuracia), color="darkgrey", alpha = 0.5)+
   geom_smooth(aes(y=MediaAcCumulativa),color="black", method = "gam",se = FALSE)+
-  labs(title = "Acurácia média SVM (1000 iterações)", 
+  labs(title = "Acurácia média LightGBM (1000 iterações)", 
        subtitle = "Linha: média cumulativa      Pontos: média por iteração",
        x = "Iteração",
        y = "Acurácia")+
@@ -15,7 +15,7 @@ Acuracia <- ggplot(dados, aes(x = ite)) +
 Tempo <- ggplot(dados,aes(x= ite)) +
   geom_point(aes(y=tExecS), color="lightblue", alpha = 0.5)+
   geom_smooth(aes(y=MediaTCumulativa), color = "blue", method = "gam",se = FALSE)+
-  labs(title="Tempo de execução médio SVM (1000 iterações)",
+  labs(title="Tempo de execução médio LightGBM (1000 iterações)",
        subtitle = "Linha: média cumulativa     Pontos: média por iteração",
        x = "Iteração",
        y = "Tempo (s)")+

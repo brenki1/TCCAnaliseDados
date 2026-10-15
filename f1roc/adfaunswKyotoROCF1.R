@@ -2,6 +2,8 @@ library(pROC)
 library(ggplot2)
 library(dplyr)
 library(knitr)
+library(gridExtra)
+library(grid)
 
 kyotoROC <- read.csv("kyotoROC.csv")
 unswROC  <- read.csv("unswROC.csv")
@@ -9,13 +11,12 @@ adfaROC  <- read.csv("adfaROC.csv")
 metricas  <- read.csv("metricas.csv")
 
 
-metricasFormat <- metricas
+metricasFormat <- metricas |>
   mutate(across(c(Acuracia, Precisao, Recall, F1_Score), ~ round(., 4)))
 
 print(kable(metricasFormat, format = "markdown"))
-cat("\n")
 
-plotROCCurva <- function(dados, dataset) {
+plotROC <- function(dados, dataset) {
   
   rocSVM  <- roc(dados$y_true, dados$prob_svm, quiet = TRUE)
   rocXGB  <- roc(dados$y_true, dados$prob_xgb, quiet = TRUE)
@@ -54,6 +55,13 @@ plotROCCurva <- function(dados, dataset) {
   print(grafico)
 }
 
-plotROCCurva(kyotoROC, "Kyoto")
-plotROCCurva(unswROC, "UNSW-NB15")
-plotROCCurva(adfaROC, "ADFA-LD")
+plotROC(kyotoROC, "Kyoto")
+plotROC(unswROC, "UNSW-NB15")
+plotROC(adfaROC, "ADFA-LD")
+
+# Plot da tabela
+
+#metricasFormat <- metricas
+#metricasFormat[, 3:7] <- round(metricasFormat[, 3:7], 4)
+#grid.newpage()
+#grid.table(metricasFormat)
